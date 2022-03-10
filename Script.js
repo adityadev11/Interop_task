@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
+const ethers = require("ethers");
 require("dotenv").config();
 const url = process.env.DB_URL;
-var feessum = BigInt(0);
-var feesUSDsum = Number(0);
 resultDict = {};
+decimalDict = {};
 mongoose.connect(url);
 const con = mongoose.connection;
 
@@ -27,14 +27,16 @@ con.on("open", async () => {
             var fees = result[i].positionInfo[0].supply[j].fees;
             var feesInUSD = result[i].positionInfo[0].supply[j].feesInUSD;
             if (!(symbol in resultDict)) {
-              resultDict[symbol] = { USD: 0, Wei: BigInt(0) };
+              resultDict[symbol] = {
+                USD: 0,
+                Wei: BigInt(0),
+                tokenAmountInDecimals: "",
+              };
+              decimalDict[symbol] =
+                result[i].positionInfo[0].supply[j].decimals;
             }
             resultDict[symbol].USD += Number(feesInUSD);
             resultDict[symbol].Wei += BigInt(fees);
-            // console.log(symbol);
-            // console.log(fees);
-            // console.log(feesInUSD);
-            // console.log(resultDict);
           }
         }
       }
@@ -46,8 +48,15 @@ con.on("open", async () => {
             var symbol = result[i].positionInfo[0].withdraw[j].symbol;
             var fees = result[i].positionInfo[0].withdraw[j].fees;
             var feesInUSD = result[i].positionInfo[0].withdraw[j].feesInUSD;
+
             if (!(symbol in resultDict)) {
-              resultDict[symbol] = { USD: 0, Wei: BigInt(0) };
+              resultDict[symbol] = {
+                USD: 0,
+                Wei: BigInt(0),
+                tokenAmountInDecimals: "",
+              };
+              decimalDict[symbol] =
+                result[i].positionInfo[0].withdraw[j].decimals;
             }
             resultDict[symbol].USD += Number(feesInUSD);
             resultDict[symbol].Wei += BigInt(fees);
@@ -57,10 +66,16 @@ con.on("open", async () => {
     }
   }
   for (key in resultDict) {
+    var dec = decimalDict[key];
     resultDict[key].USD = resultDict[key].USD.toString();
     resultDict[key].Wei = resultDict[key].Wei.toString();
+    var bigNumWei = ethers.BigNumber.from(resultDict[key].Wei);
+    resultDict[key].tokenAmountInDecimals = ethers.utils.formatUnits(
+      bigNumWei,
+      dec
+    );
   }
+  //console.log(decimalDict);
   console.log(resultDict);
-
   con.close();
 });

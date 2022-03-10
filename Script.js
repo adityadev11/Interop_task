@@ -56,6 +56,10 @@ con.on("open", async () => {
       }
     }
   }
+  for (key in resultDict) {
+    resultDict[key].USD = resultDict[key].USD.toString();
+    resultDict[key].Wei = resultDict[key].Wei.toString();
+  }
   console.log(resultDict);
 
   con.close();

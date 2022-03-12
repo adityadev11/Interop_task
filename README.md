@@ -10,4 +10,4 @@ Uses two seperate aggregate queries to get the summation of 'fees' and 'feesInUS
 
 The result displayed is the same from either scripts.
 Here is the result-
-![](result.png)
+![](newresult.png)

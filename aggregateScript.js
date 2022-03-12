@@ -24,13 +24,16 @@ con.on("open", async () => {
         _id: "$positionInfo.supply.symbol",
         USD: { $sum: { $toDecimal: "$positionInfo.supply.feesInUSD" } },
         Wei: { $sum: { $toDecimal: "$positionInfo.supply.fees" } },
+        Decimal: { $avg: "$positionInfo.supply.decimals" },
       },
     },
   ]);
+
   for (var i = 0; i < resultSupply.length; i++) {
     resultMapping[resultSupply[i]._id] = {
       USD: Number(resultSupply[i].USD),
       Wei: BigInt(resultSupply[i].Wei),
+      Decimal: Number(resultSupply[i].Decimal),
     };
   }
   const resultWithdraw = await transactionModel.aggregate([
@@ -56,6 +59,11 @@ con.on("open", async () => {
   for (key in resultMapping) {
     resultMapping[key].USD = resultMapping[key].USD.toString();
     resultMapping[key].Wei = resultMapping[key].Wei.toString();
+    var bigNumWei = ethers.BigNumber.from(resultMapping[key].Wei);
+    resultMapping[key].tokenAmountInDecimals = ethers.utils.formatUnits(
+      bigNumWei,
+      resultMapping[key].Decimal
+    );
   }
   console.log(resultMapping);
   con.close();

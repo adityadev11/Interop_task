@@ -4,6 +4,7 @@ require("dotenv").config();
 const url = process.env.DB_URL;
 resultDict = {}; //Mapping for final result
 decimalDict = {}; //Mapping of each token to it's decimals e.g- Eth:18
+var TotalUSD = 0;
 mongoose.connect(url);
 const con = mongoose.connection;
 
@@ -71,6 +72,7 @@ con.on("open", async () => {
     }
   }
   for (key in resultDict) {
+    TotalUSD += resultDict[key].USD;
     //Iterate through each element in result mapping
     var dec = decimalDict[key];
     //Get the decimal of the token using decimal token mapping
@@ -84,5 +86,6 @@ con.on("open", async () => {
   }
   //console.log(decimalDict);
   console.log(resultDict);
+  console.log("Total amount in USD-", TotalUSD);
   con.close();
 });

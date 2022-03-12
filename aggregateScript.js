@@ -4,7 +4,8 @@ require("dotenv").config();
 const url = process.env.DB_URL;
 mongoose.connect(url);
 const con = mongoose.connection;
-resultMapping = {};
+var resultMapping = {};
+var TotalUSD = 0;
 
 con.on("open", async () => {
   console.log("Connected!");
@@ -57,6 +58,7 @@ con.on("open", async () => {
     resultMapping[resultWithdraw[i]._id].Wei += BigInt(resultWithdraw[i].Wei);
   }
   for (key in resultMapping) {
+    TotalUSD += resultMapping[key].USD;
     resultMapping[key].USD = resultMapping[key].USD.toString();
     resultMapping[key].Wei = resultMapping[key].Wei.toString();
     var bigNumWei = ethers.BigNumber.from(resultMapping[key].Wei);
@@ -66,5 +68,6 @@ con.on("open", async () => {
     );
   }
   console.log(resultMapping);
+  console.log("Total amount in USD-", TotalUSD);
   con.close();
 });
